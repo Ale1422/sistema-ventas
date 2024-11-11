@@ -1,0 +1,18 @@
+Flask==2.1.0
+Flask-SQLAlchemy==2.5.1
+Flask-Migrate==3.1.0
+PyMySQL==1.0.2
+Werkzeug==2.1.1
+SQLAlchemy==1.4.46
+
+# blinker==1.8.2
+# click==8.1.7
+# colorama==0.4.6
+# dnspython==2.7.0
+# Flask==3.0.3
+# idna==3.10
+# itsdangerous==2.2.0
+# Jinja2==3.1.4
+# MarkupSafe==3.0.1
+# Werkzeug==3.0.4
+# WTForms==3.1.2

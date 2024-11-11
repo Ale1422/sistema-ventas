@@ -1,0 +1,55 @@
+{% extends "base_template.html" %}
+
+{% block title %}Editar producto{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card card-body col-md-6 col-lg-5">
+            <h3 class="text-center mb-4">Editar Producto</h3>
+
+            {% if error %}
+                <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+            {% endif %}
+
+            <form action="" method="post" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.Nombre_Producto.label(class="form-label") }}
+                    {{ form.Nombre_Producto(class="form-control", size=32) }}
+                    {% for error in form.Nombre_Producto.errors %}
+                        <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.Descripción.label(class="form-label") }}
+                    {{ form.Descripción(class="form-control", size=64) }}
+                    {% for error in form.Descripción.errors %}
+                        <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.Precio.label(class="form-label") }}
+                    {{ form.Precio(class="form-control") }}
+                    {% for error in form.Precio.errors %}
+                        <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.Stock_Cantidad.label(class="form-label") }}
+                    {{ form.Stock_Cantidad(class="form-control") }}
+                    {% for error in form.Stock_Cantidad.errors %}
+                        <span style="color: red;">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div>
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

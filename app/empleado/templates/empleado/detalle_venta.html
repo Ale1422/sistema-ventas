@@ -1,0 +1,32 @@
+{% extends "base_template.html" %}
+
+{% block title %}Detalle de la Venta{% endblock %}
+
+{% block content %}
+    <h2>Detalle de la Venta</h2>
+    <p><strong>Fecha:</strong> {{ venta.Fecha_Venta }}</p>
+    <p><strong>Total:</strong> ${{ venta.Total_Venta }}</p>
+    <p><strong>Método de Pago:</strong> {{ venta.Método_Pago }}</p>
+
+    <h3>Productos</h3>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in detalles %}
+            <tr>
+                <td>{{ item.ID_Producto }}</td> <!-- Aquí podrías hacer un join para mostrar el nombre del producto -->
+                <td>{{ item.Cantidad }}</td>
+                <td>${{ item.Precio_Unitario }}</td>
+                <td>${{ item.Subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

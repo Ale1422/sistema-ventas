@@ -1,0 +1,157 @@
+{% extends "base_template.html" %}
+
+{% block title %}Registro de ventas{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div  class="col-md-8">
+            <h2>Registro de Venta</h2>
+    
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Producto - Precio Unitario</th>
+                        <th>Cantidad</th>
+                        <th>Añadir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in Producto.query.all() %}
+                    <tr>
+                        
+                            <td>
+                                {{ producto.Nombre_Producto }} - ${{ producto.Precio }}
+                                <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                            </td>
+                            <td>
+                                <input id="{{producto.id}}" class="form-control" type="number" name="cantidad" value="1" min="1" required>
+                            </td>
+                            <td>
+                                <button class="btn btn-success"  onclick="agregarProducto('{{ producto.id }}')">Añadir a la Venta</button>
+                            </td>
+                       
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    
+        <!-- Mostrar los productos añadidos al carrito -->
+        <div class="col-md-4">
+            <h2>Carrito</h2>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody id="carritoContenido">
+                    {% for item in carrito %}
+                    <tr>
+                        <td>{{ item['nombre'] }}</td>
+                        <td>{{ item['cantidad'] }}</td>
+                        <td>${{ item['precio_unitario'] }}</td>
+                        <td>${{ item['subtotal'] }}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="eliminarProducto('{{ item.id }}')">Eliminar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <h3>Total: $<span id="totalCarrito">{{ total }}</span></h3>
+            <div class="d-flex">
+                <form action="{{ url_for('empleado.limpiar_carrito') }}" method="GET">
+                    <button class="btn btn-success m-2" type="submit">Limpiar Carrito</button>
+                </form>
+                <form action="{{ url_for('empleado.generar_venta') }}" method="POST">
+                    <button class="btn btn-warning m-2" type="submit">Generar venta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        function agregarProducto(productoId) {
+            // Obtener la cantidad
+            const cantidad = document.querySelector(`input[id="${productoId}"][name="cantidad"]`).value;
+    
+            // Enviar datos al servidor con fetch
+            fetch('/agregar-producto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ producto_id: productoId, cantidad: cantidad })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                const carritoContenido = document.getElementById("carritoContenido");
+                carritoContenido.innerHTML = '';
+                data.carrito.forEach(item => {
+                    carritoContenido.innerHTML += `
+                        <tr>
+                            <td>${item.nombre}</td>
+                            <td>${item.cantidad}</td>
+                            <td>$${item.precio_unitario}</td>
+                            <td>$${item.subtotal}</td>
+                            <td>
+                                <button class="btn btn-danger" onclick="eliminarProducto('${item.id}')">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+    
+                // Actualizar total
+                document.getElementById("totalCarrito").textContent = data.total;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        function eliminarProducto(productoId) {
+            fetch('/eliminar_producto', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ producto_id: productoId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                // Actualizar carrito en la página
+                const carritoContenido = document.getElementById("carritoContenido");
+                carritoContenido.innerHTML = '';
+                data.carrito.forEach(item => {
+                    carritoContenido.innerHTML += `
+                        <tr>
+                            <td>${item.nombre}</td>
+                            <td>${item.cantidad}</td>
+                            <td>$${item.precio_unitario}</td>
+                            <td>$${item.subtotal}</td>
+                            <td>
+                                <button class="btn btn-danger" onclick="eliminarProducto('${item.id}')">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // Actualizar total
+                document.getElementById("totalCarrito").textContent = data.total;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base_template.html" %}
+
+{% block title %}Registro de ventas{% endblock %}
+
+{% block content %}
+
+    <h2>Resumen de la Venta</h2>
+
+    <!-- Mostrar el carrito final y el total -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in carrito %}
+            <tr>
+                <td>{{ item['nombre'] }}</td>
+                <td>{{ item['cantidad'] }}</td>
+                <td>${{ item['precio_unitario'] }}</td>
+                <td>${{ item['subtotal'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Total: ${{ total }}</h3>
+
+    <a href="{{ url_for('empleado.dashboard') }}">Volver a la Venta</a>
+
+{% endblock %}
