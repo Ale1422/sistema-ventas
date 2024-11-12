@@ -41,7 +41,6 @@ def show_signup_form():
 def productos():
     form = ProductoForm()
     productos = Producto.get_all()
-    print(request.args.get('next'))
     if form.validate_on_submit():
         nombre = form.nombre.data
         descripcion = form.descripcion.data

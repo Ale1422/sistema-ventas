@@ -22,8 +22,8 @@
                 <li><a href="{{ url_for('admin.show_signup_form') }}">Usuarios</a></li>
                 <li><a href="RUTA REDIRECCION REPORTES">Reportes</a></li>
             {% elif current_user.get_rol() == "EMPLEADO" %}
-                <li><a href="{{ url_for('empleado.venta') }}">Ventas</a></li>
-                <li><a href="CAJA">Caja</a></li>
+                <li><a href="{{ url_for('empleado.venta') }}">Venta</a></li>
+                <li><a href="{{ url_for('empleado.listado_ventas') }}">Ventas diarias</a></li>
             {% endif %}
             <li class="text-secondary">{{ current_user.nombre }} {{ current_user.apellido }} >{{ current_user.get_rol() }}<</li>
             <li><a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></li>

@@ -1,0 +1,57 @@
+{% extends "base_template.html" %}
+
+{% block title %}Listado de ventas{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Listado de ventas</h2>
+            
+            <!-- Formulario de filtro de fechas -->
+            <form method="GET" action="{{ url_for('empleado.listado_ventas') }}">
+                <div class="row mb-3">
+                    <div class="col-md-5">
+                        <label for="fecha_inicio">Fecha de inicio</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" 
+                               value="{{ request.args.get('fecha_inicio') }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="fecha_fin">Fecha de fin</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" 
+                               value="{{ request.args.get('fecha_fin') }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla de ventas filtradas -->
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Método de Pago</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                            <td>
+                                <a href="{{ url_for('empleado.detalle_venta', venta_id=venta.id) }}">
+                                {{ venta.id }}
+                                </a>
+                            </td>
+                            <td>{{ venta.Fecha_Venta.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ venta.Método_Pago }}</td>
+                            <td>${{ venta.Total_Venta }}</td>
+                        
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

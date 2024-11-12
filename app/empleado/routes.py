@@ -108,6 +108,31 @@ def detalle_venta(venta_id):
     detalles = DetalleVenta.query.filter_by(ID_Venta=venta_id).all()
     return render_template('empleado/detalle_venta.html', venta=venta, detalles=detalles)
 
+@empleado_bp.route('/listado_ventas', methods = ['GET'])
+def listado_ventas():
+        # Obtener las fechas de los parámetros GET
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+    print(fecha_fin)
+    print(fecha_inicio)
+
+    # Construir la consulta base
+    query = Venta.query
+
+    # Aplicar filtro de fechas si están especificadas
+    if fecha_inicio:
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+        query = query.filter(Venta.Fecha_Venta >= fecha_inicio)
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
+        query = query.filter(Venta.Fecha_Venta <= fecha_fin)
+    
+    # Ejecutar la consulta
+    ventas = query.all()
+
+    # Renderizar el template y pasar las ventas filtradas
+    return render_template('empleado/listado_ventas.html', ventas=ventas)
+
 
 @empleado_bp.route('/eliminar_producto', methods=['POST'])
 def eliminar_producto():
