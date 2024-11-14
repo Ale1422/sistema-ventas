@@ -1,4 +1,5 @@
 from datetime import datetime
+from ..admin.models import Producto
 
 
 from app import db
@@ -34,3 +35,8 @@ class DetalleVenta(db.Model):
         self.Cantidad=cantidad
         self.Precio_Unitario=precio_unitario
         self.Subtotal=subtotal
+    
+    def get_nombre_producto(self):
+        id = self.ID_Producto
+        producto = Producto.get_by_id(id)
+        return producto.Nombre_Producto

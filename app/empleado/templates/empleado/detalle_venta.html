@@ -21,7 +21,7 @@
         <tbody>
             {% for item in detalles %}
             <tr>
-                <td>{{ item.ID_Producto }}</td> <!-- Aquí podrías hacer un join para mostrar el nombre del producto -->
+                <td>{{ item.get_nombre_producto() }}</td> <!-- Aquí podrías hacer un join para mostrar el nombre del producto -->
                 <td>{{ item.Cantidad }}</td>
                 <td>${{ item.Precio_Unitario }}</td>
                 <td>${{ item.Subtotal }}</td>

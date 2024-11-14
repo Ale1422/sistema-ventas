@@ -40,6 +40,9 @@ def registrar_venta(usuario_id, carrito, metodo_pago, descuento=float('0.00')):
 
 @empleado_bp.route("/empleado", methods=["GET"])
 def dashboard():
+    if 'carrito' not in session:
+        session['carrito'] = []
+        
     total = sum(item['subtotal'] for item in session.get('carrito', []))
     return render_template('empleado/index.html', carrito=session['carrito'], Producto = Producto, total = total)
 
