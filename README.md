@@ -1,20 +1,5 @@
 # PROYECTO FINAL
 
-Algun texto descriptivo
-
-## Funcionalidades
-
-El ------ siguientes características:
-
-* 
-* 
-* 
-* 
-
-  
-## Descarga e instalación del proyecto
-
-
 ### Crear emtorno virtual
 
 En la ruta raiz del proyecto, correr el siguiente comando(Asegurarse de tener python instalado y la libreria virtualenv)
