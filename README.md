@@ -34,6 +34,13 @@ basta con ejectuar:
 
 * ```pip install -r requirements.txt```
 
+## Migracion modelos de la aplicacion a la base de datos
+
+* ```flask db init```
+* ```flask db migrate -m "First migration"```
+* ```flask db upgrade```
+* ```flask db downgrade``` (Revertir en caso de que los cambios no funcionen)
+
 ## Ejecución con el servidor que trae Flask
 
 Una vez que hayas descargado el proyecto, creado las variables de entorno y descargado las dependencias,
