@@ -6,7 +6,6 @@ from . import public_bp
 
 @public_bp.route("/")
 def index():
-    print(current_user)
     posts =[] #Post.get_all()
     return render_template("public/index.html", posts=posts)
 
