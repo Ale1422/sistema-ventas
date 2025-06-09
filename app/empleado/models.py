@@ -10,8 +10,9 @@ class Venta(db.Model):
     ID_Usuario = db.Column(db.Integer, db.ForeignKey('Usuarios.id'))
     Fecha_Venta = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     Total_Venta = db.Column(db.Numeric(10, 2), nullable=False)
-    Método_Pago = db.Column(db.Enum('efectivo', 'tarjeta'), nullable=False)
+    Método_Pago = db.Column(db.Enum('efectivo', 'tarjeta', 'tarjeta credito', 'tarjeta debito', 'transferencia'), nullable=False)
     Descuento_Aplicado = db.Column(db.Numeric(10, 2), default=0)
+    Detalle = db.Column(db.String(255))
 
     def __init__(self, id_usuario,fecha_venta, total_venta, metodo_pago, descuento = 0.0):
         self.ID_Usuario=id_usuario
