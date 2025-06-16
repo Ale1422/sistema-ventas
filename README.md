@@ -1,6 +1,6 @@
 # PROYECTO FINAL
 
-### Crear emtorno virtual
+### Crear entorno virtual
 
 En la ruta raiz del proyecto, correr el siguiente comando(Asegurarse de tener python instalado y la libreria virtualenv)
 
