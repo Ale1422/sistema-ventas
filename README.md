@@ -1,5 +1,7 @@
 # PROYECTO FINAL
 
+### Versión Python 3.10
+
 ### Crear emtorno virtual
 
 En la ruta raiz del proyecto, correr el siguiente comando(Asegurarse de tener python instalado y la libreria virtualenv)
