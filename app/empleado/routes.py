@@ -1,8 +1,15 @@
-from flask import render_template, jsonify, redirect, url_for, flash, request, session
+from flask import render_template, jsonify, redirect, url_for, flash, request, session, make_response
 from ..admin.models import Producto
 from ..decorators import roles_requeridos
 from flask_login import current_user
 from app import db
+import csv
+import io
+
+import logging
+
+logging.basicConfig(level=logging.ERROR, format="%(levelname)s - %(message)s")
+
 
 from .models import Venta, DetalleVenta
 from datetime import datetime
@@ -132,12 +139,15 @@ def detalle_venta(venta_id):
 @empleado_bp.route('/listado_ventas', methods = ['GET'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def listado_ventas():
-        # Obtener las fechas de los parámetros GET
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    # Obtener las fechas de los parámetros GET
     fecha_inicio = request.args.get('fecha_inicio')
     fecha_fin = request.args.get('fecha_fin')
+    forma_pago = request.args.get('forma_pago')
 
     # Construir la consulta base
-    query = Venta.query
+    query = Venta.query.order_by(Venta.Fecha_Venta.desc())
 
     # Aplicar filtro de fechas si están especificadas
     if fecha_inicio:
@@ -147,11 +157,13 @@ def listado_ventas():
         fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
         query = query.filter(Venta.Fecha_Venta <= fecha_fin)
     
-    # Ejecutar la consulta
-    ventas = query.all()
+    if forma_pago and forma_pago != '':
+        query = query.filter(Venta.Método_Pago == forma_pago)
 
-    # Renderizar el template y pasar las ventas filtradas
-    return render_template('empleado/listado_ventas.html', ventas=ventas)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    logging.error(pagination)
+
+    return render_template('empleado/listado_ventas.html', pagination=pagination)
 
 
 @empleado_bp.route('/eliminar_producto', methods=['POST'])
@@ -202,3 +214,47 @@ def generar_venta():
         print(str(e))
         flash(f'Ocurrió un error al generar la venta: {str(e)}', 'error')
         return redirect(url_for('empleado.venta'))
+
+@empleado_bp.route('/descargar_ventas_csv')
+@roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
+def descargar_ventas_csv():
+    # 1. Obtener los filtros de la URL (igual que en tu vista de listado)
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+    forma_pago = request.args.get('forma_pago')
+
+    # 2. Construir la consulta (Query) usando SQLAlchemy
+    # Ajusta 'Venta' al nombre real de tu clase Modelo
+    query = Venta.query
+
+    if fecha_inicio and fecha_fin:
+        query = query.filter(Venta.Fecha_Venta.between(fecha_inicio, fecha_fin))
+    
+    if forma_pago and forma_pago != '':
+        query = query.filter(Venta.Método_Pago == forma_pago)
+
+    ventas = query.all()
+
+    si = io.StringIO()
+    si.write('\ufeff')
+    cw = csv.writer(si)
+
+    # Escribir encabezados
+    cw.writerow(['ID', 'Fecha', 'Método de Pago', 'Total'])
+
+    # Escribir filas
+    for venta in ventas:
+        cw.writerow([
+            venta.id,
+            # Formateamos la fecha para que se vea bien en Excel
+            venta.Fecha_Venta.strftime('%d-%m-%Y') if venta.Fecha_Venta else '',
+            venta.Método_Pago,
+            venta.Total_Venta
+        ])
+
+    # 4. Crear la respuesta de descarga, cabeceras de respuesta
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=reporte_ventas.csv"
+    output.headers["Content-type"] = "text/csv"
+    
+    return output
