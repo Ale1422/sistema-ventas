@@ -3,31 +3,40 @@
 {% block title %}Listado de ventas{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-8">
+    <div class="row w-75">
+        <div class="col-md-12">
+            <div class="d-flex flex-row-reverse">
+                <a href="{{ url_for('empleado.descargar_ventas_csv', **request.args) }}" class="btn btn-success">
+                    CSV <i class="fas fa-arrow-down"></i>
+                </a>
+            </div> 
+        </div>
+        <div class="col-md-12">
             <h2>Listado de ventas</h2>
-            
-            <!-- Formulario de filtro de fechas -->
-            <!-- <form method="GET" action="{{ url_for('empleado.listado_ventas') }}">
-                <div class="row mb-3">
-                    <div class="col-md-5">
-                        <label for="fecha_inicio">Fecha de inicio</label>
-                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" 
-                               value="{{ request.args.get('fecha_inicio') }}">
-                    </div>
-                    <div class="col-md-5">
-                        <label for="fecha_fin">Fecha de fin</label>
-                        <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" 
-                               value="{{ request.args.get('fecha_fin') }}">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-                    </div>
+            <form method="GET" action="{{ url_for('empleado.listado_ventas') }}" class="row m-2">
+                <div class="col">
+                    <label for="" class="form-label">Desde</label>
+                    <input name="fecha_inicio" type="date" class="form-control" required>
                 </div>
-            </form> -->
-
-            <!-- Tabla de ventas filtradas -->
-            <table class="table table-hover">
+                <div class="col">
+                    <label for="" class="form-label">Hasta</label>
+                    <input name="fecha_fin" type="date" class="form-control" required>
+                </div>
+                <div class="col">
+                    <label for="" class="form-label">Forma de pago</label>
+                    <!-- <input type="date" class="form-control"> -->
+                     <select name="forma_pago" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="tarjeta">Tarjeta</option>
+                     </select>
+                </div>
+                <div class="col m-auto text-center">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filtrar</button>
+                </div>
+            </form>
+            <table class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -37,21 +46,73 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for venta in ventas %}
+                    {% for venta in pagination.items %}
+                    <tr class="clickable-row" data-href="{{ url_for('empleado.detalle_venta', venta_id=venta.id) }}">
+                        <td>{{ venta.id }}</td>
+                        <td>{{ venta.Fecha_Venta.strftime('%d-%m-%Y') }}</td>
+                        <td>{{ venta.Método_Pago }}</td>
+                        <td>${{ venta.Total_Venta }}</td>
+                    </tr>
+                    {% else %}
                     <tr>
-                            <td>
-                                <a href="{{ url_for('empleado.detalle_venta', venta_id=venta.id) }}">
-                                {{ venta.id }}
-                                </a>
-                            </td>
-                            <td>{{ venta.Fecha_Venta.strftime('%Y-%m-%d') }}</td>
-                            <td>{{ venta.Método_Pago }}</td>
-                            <td>${{ venta.Total_Venta }}</td>
-                        
+                        <td colspan="4" class="text-center">No hay ventas registradas.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            <nav aria-label="Navegación de ventas" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" 
+                        href="{{ url_for('empleado.listado_ventas', page=pagination.prev_num) }}" 
+                        tabindex="-1">Anterior</a>
+                    </li>
+
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" 
+                                href="{{ url_for('empleado.listado_ventas', page=page_num) }}">
+                                {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" 
+                        href="{{ url_for('empleado.listado_ventas', page=pagination.next_num) }}">Siguiente</a>
+                    </li>
+                </ul>
+                
+                <div class="text-center text-muted small mt-2">
+                    Total {{ pagination.total }} registros
+                </div>
+            </nav>
         </div>
     </div>
+
+    <style>
+        .clickable-row {
+            cursor: pointer;
+        }
+        .clickable-row:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hacer filas clickeables
+            const rows = document.querySelectorAll('.clickable-row');
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    window.location.href = this.dataset.href;
+                });
+            });
+        });
+    </script>
 {% endblock %}

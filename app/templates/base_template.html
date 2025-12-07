@@ -2,79 +2,202 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <!-- BOOSTRAP 4 -->
     <title>{% block title %}{% endblock %}</title>
+    <style>
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #sidebar {
+          min-width: 15vw;
+          min-height: 100vh;
+          background: #d7dadd;
+          color: white;
+          padding: 1%;
+        }
+
+        /* Estilos para las notificaciones */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            width: 350px;
+        }
+        
+        .notification {
+            position: relative;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .notification-close {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0.4;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+        
+        /* Colores según categoría */
+        .notification-warning {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            color: #856404;
+        }
+        
+        .notification-success {
+            background-color: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+        
+        .notification-error {
+            background-color: #f8d7da;
+            border-left: 5px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .notification-info {
+            background-color: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .notification-icon {
+            margin-right: 15px;
+            font-size: 24px;
+        }
+
+        @media print {
+        /* Ocultar navegación y sidebar */
+        nav.navbar, #sidebar {
+            display: none !important;
+        }
+        
+        /* Asegurar que el contenido ocupe todo el ancho */
+        .content-print {
+            margin-left: 0 !important;
+            width: 100% !important;
+        }
+        
+        /* Eliminar padding/margen innecesario */
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+    </style>
     <link rel="stylesheet" href="{{ url_for("static", filename="base.css") }}">
-    <link rel="stylesheet" href="https://bootswatch.com/4/materia/bootstrap.min.css">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/carniceria2.png') }}">
+    <link rel="stylesheet" href="https://bootswatch.com/5/brite/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}"> -->
   </head>
   <body>
-
+    <!-- Contenido de tu layout -->
+    <div class="notification-container" id="notificationContainer">
+      <!-- Las notificaciones se insertarán aquí -->
+    </div>
     <!-- NAVIGATION  -->
-    <nav class="navbar navbar-dark bg-dark">
-      <div class="container">
-        <a class="navbar-brand" href="/"><img src="../static/img/carniceria.jpg" class="m-4" alt="" width="100" height="60">Administracion de ventas</a>
-        {% if current_user.is_anonymous %}
-            <li><a href="{{ url_for('auth.login') }}">Iniciar Sesion</a></li>
-        {% else %}
-            {% if current_user.get_rol() == "ADMINISTRADOR" %}
-                <li><a href="{{ url_for('admin.productos')}}">Productos</a></li>
-                <li><a href="{{ url_for('admin.show_signup_form') }}">Usuarios</a></li>
-                <li><a href="RUTA REDIRECCION REPORTES">Reportes</a></li>
-            {% elif current_user.get_rol() == "EMPLEADO" %}
-                <li><a href="{{ url_for('empleado.venta') }}">Venta</a></li>
-                <li><a href="{{ url_for('empleado.listado_ventas') }}">Ventas diarias</a></li>
-            {% endif %}
-            <li class="text-secondary">{{ current_user.nombre }} {{ current_user.apellido }} >{{ current_user.get_rol() }}<</li>
-            <li><a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></li>
-        {% endif %}
-      </div>
+    <nav class="navbar navbar-dark bg-dark ">
+        <div class="container-fluid text-white">
+          <a class="navbar-brand" href="/">
+            <svg width="45" height="45" viewBox="0 0 45 45">
+              <image xlink:href="../static/img/carniceria2.svg" width="45" height="45" style="filter: grayscale(100%) brightness(0) invert(1);"/>
+            </svg>
+            Administracion de ventas
+          </a>
+          {% if current_user.is_anonymous %}
+            <a class=" text-white" href="{{ url_for('auth.login') }}">Iniciar Sesion</a>
+          {% else %}
+            <div>
+              <a class="text-white p-2" style="text-decoration: none;" >{{ current_user.nombre.upper() }} {{ current_user.apellido.upper() }} >{{ current_user.get_rol().upper() }}<</a>
+            </div>
+          {% endif %}
+        </div>
     </nav>
 
-    <div class="container pt-4">
-        {% block content %}{% endblock %}
-    </div>
-    <footer class="bg-dark text-white py-4 mt-5">
+    <div class="d-flex">
+        {% if not current_user.is_anonymous %}
+            <nav id="sidebar" class="">
+                <ul class="nav flex-column accordion" id="menuColapsable">
+                {% if current_user.get_rol().upper() == "ADMINISTRADOR" %}
+                    <li class="nav-item m-1">
+                        <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'admin.productos' %}active bg-secondary bg-opacity-50{% endif %}" 
+                        href="{{ url_for('admin.productos')}}">
+                            <i class="fas fa-box me-2"></i> Productos
+                        </a>
+                    </li>
+                    <li class="nav-item m-1">
+                        <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'admin.show_signup_form' %}active bg-secondary bg-opacity-50{% endif %}" 
+                        href="{{ url_for('admin.show_signup_form') }}">
+                            <i class="fas fa-users me-2"></i> Usuarios
+                        </a>
+                    </li>
+                    <!-- <li class="nav-item m-1">
+                        <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'ruta_de_reportes' %}active bg-secondary bg-opacity-50{% endif %}" 
+                        href="">
+                            <i class="fas fa-chart-line me-2"></i> Reportes
+                        </a>
+                    </li> -->
+                {% elif current_user.get_rol() == "EMPLEADO" %}
+                    <li class="nav-item m-1">
+                        <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'empleado.venta' %}active bg-secondary bg-opacity-50{% endif %}" 
+                        href="{{ url_for('empleado.venta') }}">
+                            <i class="fas fa-cart-plus me-2"></i> Nuevo Pedido
+                        </a>
+                    </li>
+                    <li class="nav-item m-1">
+                        <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'empleado.listado_ventas' %}active bg-secondary bg-opacity-50{% endif %}" 
+                        href="{{ url_for('empleado.listado_ventas') }}">
+                            <i class="fas fa-calendar-day me-2"></i> Ventas
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="nav-item m-1">
+                    <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'auth.logout' %}active bg-secondary bg-opacity-50{% endif %}" 
+                    href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                    </a>
+                </li>
+                </ul>
+            </nav>
+          {% endif %}
+    
+        <!-- Contenido principal -->
+        <div class="d-flex justify-content-center flex-grow-1 p-4">
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+
+    <footer class="bg-dark text-white py-4">
       <div class="container text-center">
-          <div class="row">
-              <!-- Enlaces de Navegación -->
-              <div class="col-md-4 mb-3">
-                  <h5>Enlaces</h5>
-                  <ul class="list-unstyled">
-                      <li><a href="#inicio" class="text-white text-decoration-none">Inicio</a></li>
-                      <li><a href="#servicios" class="text-white text-decoration-none">Servicios</a></li>
-                      <li><a href="#productos" class="text-white text-decoration-none">Productos</a></li>
-                      <li><a href="#contacto" class="text-white text-decoration-none">Contacto</a></li>
-                  </ul>
-              </div>
-  
-              <!-- Información de Contacto -->
-              <div class="col-md-4 mb-3">
-                  <h5>Contacto</h5>
-                  <p>Teléfono: +54 9 11 1234-5678</p>
-                  <p>Email: contacto@tusitio.com</p>
-                  <p>Dirección: Calle Falsa 123, Ciudad, País</p>
-              </div>
-  
-              <!-- Redes Sociales -->
-              <div class="col-md-4 mb-3">
-                  <h5>Síguenos</h5>
-                  <a href="https://facebook.com" target="_blank" class="text-white me-2">
-                      <i class="bi bi-facebook"></i> Facebook
-                  </a>
-                  <a href="https://twitter.com" target="_blank" class="text-white me-2">
-                      <i class="bi bi-twitter"></i> Twitter
-                  </a>
-                  <a href="https://instagram.com" target="_blank" class="text-white me-2">
-                      <i class="bi bi-instagram"></i> Instagram
-                  </a>
-                  <a href="https://linkedin.com" target="_blank" class="text-white">
-                      <i class="bi bi-linkedin"></i> LinkedIn
-                  </a>
-              </div>
-          </div>
           <div class="text-center mt-3">
-              <p>&copy; 2024 TUCHANGUITO. Todos los derechos reservados.</p>
+              <p>&copy; 2024 Carne carne. Todos los derechos reservados.</p>
           </div>
       </div>
     </footer>
@@ -82,8 +205,71 @@
     <!-- footer -->
     <!-- scripts -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script> -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <script src="{{url_for('static', filename='js/main.js')}}"></script>
+    <!-- <script src="{{url_for('static', filename='js/main.js')}}"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </script>
+  <script>
+      // Mostrar notificaciones flash
+      document.addEventListener('DOMContentLoaded', function() {
+          const container = document.getElementById('notificationContainer');
+          
+          {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                  {% for category, message in messages %}
+                      showNotification('{{ message }}', '{{ category }}');
+                  {% endfor %}
+              {% endif %}
+          {% endwith %}
+          
+          function showNotification(message, category = 'info') {
+              const notification = document.createElement('div');
+              notification.className = `notification notification-${category}`;
+              
+              // Icono según categoría
+              let iconClass;
+              switch(category) {
+                  case 'success':
+                      iconClass = 'fa-check-circle';
+                      break;
+                  case 'error':
+                      iconClass = 'fa-exclamation-circle';
+                      break;
+                  case 'warning':
+                      iconClass = 'fa-exclamation-triangle';
+                      break;
+                  default:
+                      iconClass = 'fa-info-circle';
+              }
+              
+              notification.innerHTML = `
+                  <i class="fas ${iconClass} notification-icon"></i>
+                  <div class="notification-message">${message}</div>
+                  <button class="notification-close">&times;</button>
+              `;
+              
+              container.appendChild(notification);
+              
+              // Mostrar con animación
+              setTimeout(() => notification.classList.add('show'), 10);
+              
+              // Cerrar notificación al hacer click en la X
+              notification.querySelector('.notification-close').addEventListener('click', () => {
+                  notification.classList.remove('show');
+                  setTimeout(() => notification.remove(), 300);
+              });
+              
+              // Auto-eliminar después de 5 segundos
+              setTimeout(() => {
+                  notification.classList.remove('show');
+                  setTimeout(() => notification.remove(), 300);
+              }, 5000);
+          }
+          
+          // Opcional: Hacer esta función disponible globalmente
+          window.showNotification = showNotification;
+      });
+  </script>
   </body>
 </html>

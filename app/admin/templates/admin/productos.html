@@ -4,56 +4,95 @@
 
 {% block content %}
     <div class="d-flex justify-content-center align-items-center flex-column" style="min-height: 80vh;">
-        <div class="card card-body col-md-6 col-lg-5 mb-4">
-            <h3 class="text-center mb-4">Ingresar Nuevo Producto</h3>
-            
-            {% if error %}
-                <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
-            {% endif %}
-
-            <form action="" method="post" novalidate>
-                {{ form.hidden_tag() }}
-                
-                <div class="mb-3">
-                    {{ form.nombre.label(class="form-label") }}
-                    {{ form.nombre(class="form-control", size=32) }}
-                    {% for error in form.nombre.errors %}
-                        <span style="color: red;">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.descripcion.label(class="form-label") }}
-                    {{ form.descripcion(class="form-control", size=64) }}
-                    {% for error in form.descripcion.errors %}
-                        <span style="color: red;">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.precio.label(class="form-label") }}
-                    {{ form.precio(class="form-control") }}
-                    {% for error in form.precio.errors %}
-                        <span style="color: red;">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="mb-3">
-                    {{ form.stock.label(class="form-label") }}
-                    {{ form.stock(class="form-control") }}
-                    {% for error in form.stock.errors %}
-                        <span style="color: red;">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div>
-                    {{ form.submit(class="btn btn-primary w-100") }}
-                </div>
-            </form>
+        <!-- Botón para abrir el modal (antes de la tabla) -->
+        <div class="w-100 d-flex justify-content-between align-items-center mb-3">
+            <h3>Productos</h3>
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#nuevoProductoModal">
+                Agregar Producto
+            </button>
         </div>
 
+        <!-- Modal -->
+        <div class="modal fade" id="nuevoProductoModal" tabindex="-1" aria-labelledby="nuevoProductoModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="nuevoProductoModalLabel">Ingresar Nuevo Producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if error %}
+                            <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+                        {% endif %}
+
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                {{ form.nombre.label(class="form-label") }}
+                                {{ form.nombre(class="form-control", size=32) }}
+                                {% for error in form.nombre.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.descripcion.label(class="form-label") }}
+                                {{ form.descripcion(class="form-control", size=64) }}
+                                {% for error in form.descripcion.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.precio.label(class="form-label") }}
+                                {{ form.precio(class="form-control") }}
+                                {% for error in form.precio.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.stock.label(class="form-label") }}
+                                {{ form.stock(class="form-control") }}
+                                {% for error in form.stock.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                {{ form.submit(class="btn btn-warning") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de confirmación para cambiar estado -->
+        <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmStatusModalLabel">Cambiar estado del producto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="statusModalBody">
+                        <!-- El contenido se llenará dinámicamente -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <form id="statusChangeForm" method="POST" action="">
+                            <button type="submit" class="btn btn-warning">Confirmar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de productos (se mantiene igual) -->
         <div class="w-100">
-            <h3>Productos</h3>
             <table class="table table-hover table-bordered bg-white">
                 <thead>
                     <tr>
@@ -62,6 +101,7 @@
                         <td><strong>Descripción</strong></td>
                         <td><strong>Precio</strong></td>
                         <td><strong>Stock</strong></td>
+                        <td><strong>Estado</strong></td>
                         <td><strong>Operaciones</strong></td>
                     </tr>
                 </thead>
@@ -74,8 +114,20 @@
                         <td>{{ product.Precio }}</td>
                         <td>{{ product.Stock_Cantidad }}</td>
                         <td>
-                            <a href="/edit/{{ product.id }}" class="btn btn-secondary btn-sm">Editar</a>
-                            <a href="/delete/{{ product.id }}" class="btn btn-danger btn-sm">Borrar</a>
+                            <span class="badge bg-{% if product.Estado == 'disponible' %}success{% else %}danger{% endif %}">
+                                {{ product.Estado }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.get_contact', id=product.id) }}" class="btn btn-secondary btn-sm">Editar</a>
+                            <button type="button" class="btn btn-{% if product.Estado == 'disponible' %}danger{% else %}success{% endif %} btn-sm change-status-btn"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#confirmStatusModal"
+                                    data-product-id="{{ product.id }}"
+                                    data-product-name="{{ product.Nombre_Producto }}"
+                                    data-current-status="{{ product.Estado }}">
+                                {% if product.Estado == 'disponible' %}Deshabilitar{% else %}habilitar{% endif %}
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -83,4 +135,27 @@
             </table>
         </div>
     </div>
+
+    <!-- JavaScript para manejar el modal de cambio de estado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var statusModal = document.getElementById('confirmStatusModal');
+            var statusForm = document.getElementById('statusChangeForm');
+            
+            statusModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var productId = button.getAttribute('data-product-id');
+                var productName = button.getAttribute('data-product-name');
+                var currentStatus = button.getAttribute('data-current-status');
+                var newStatus = currentStatus === 'disponible' ? 'no disponible' : 'disponible';
+                
+                // Actualizar el contenido del modal
+                var modalBody = statusModal.querySelector('.modal-body');
+                modalBody.textContent = `¿Estás seguro que deseas cambiar el estado del producto "${productName}" de ${currentStatus} a ${newStatus}?`;
+                
+                // Actualizar el formulario
+                statusForm.action = `/cambiar_estado_producto/${productId}`;
+            });
+        });
+    </script>
 {% endblock %}

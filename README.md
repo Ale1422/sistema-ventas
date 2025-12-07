@@ -1,6 +1,8 @@
 # PROYECTO FINAL
 
-### Crear entorno virtual
+### Versión Python 3.10
+
+### Crear emtorno virtual
 
 En la ruta raiz del proyecto, correr el siguiente comando(Asegurarse de tener python instalado y la libreria virtualenv)
 
@@ -47,3 +49,26 @@ Una vez que hayas descargado el proyecto, creado las variables de entorno y desc
 puedes arrancar el proyecto ejecutando:
 
 * ```flask run```
+
+
+### Servicio en VM
+
+Activar entorno virtual e installar gunicorn con pip
+
+Archivo de inicio de aplicacion(/etc/systemd/system/sistema-ventas.service)
+
+```
+[Unit]
+Description=Gunicorn instance to serve Flask app
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/sistema-ventas
+Environment="PATH=/var/www/sistema-ventas/venv/bin"
+ExecStart=/var/www/sistema-ventas/venv/bin/gunicorn -w 4 -b 0.0.0.0:3000 run:app --access-logfile access.log --error-logfile error.log
+
+[Install]
+WantedBy=multi-user.target
+```

@@ -27,7 +27,7 @@ def login():
                 if user.get_rol() == "ADMINISTRADOR":
                     next_page = url_for('admin.dashboard')
                 else:
-                    next_page = url_for('empleado.dashboard')
+                    next_page = url_for('empleado.venta')
             return redirect(next_page)
     return render_template('auth/login_form.html', form=form)
 

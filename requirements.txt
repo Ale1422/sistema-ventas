@@ -9,3 +9,4 @@ SQLAlchemy==1.4.46
 Werkzeug==2.0.3
 WTForms==3.2.1
 cryptography==44.0.2
+pytz==2025.2
