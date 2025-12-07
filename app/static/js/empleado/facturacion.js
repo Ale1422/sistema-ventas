@@ -155,9 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Agregar accion al boton de busqueda
-    document.getElementById('btnBuscar').addEventListener('click', mostrarModalBusqueda)
-
     // Buscar producto por nombre (modal)
     document.getElementById('btnBuscarProducto').addEventListener('click', buscarProductos);
     document.getElementById('busquedaProducto').addEventListener('keypress', function(e) {
@@ -182,30 +179,105 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#finalizarVentaModal').modal('show');
     });
 
-    // Confirmar venta
-    // document.getElementById('btnConfirmarVenta').addEventListener('click', function() {
-    //     const metodoPago = document.getElementById('metodoPago').value;
-        
+    const inputNombre = document.getElementById('nombreProducto');
+    const listaResultados = document.getElementById('listaResultados');
+    
+    // Inputs que vamos a rellenar al seleccionar
+    const inputPrecio = document.getElementById('precioProducto');
+    const inputCodigo = document.getElementById('codigoProducto');
 
-    //     fetch('/generar_factura', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         body: JSON.stringify(data)
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         if (data.success) {
-    //             alert('Venta registrada con éxito');
-    //             window.location.href = `/detalle_factura/${data.factura_id}`;
-    //         } else {
-    //             alert('Error al registrar la venta: ' + data.error);
-    //         }
-    //     })
-    //     .catch(error => {
-    //         console.error('Error:', error);
-    //         alert('Error al conectar con el servidor');
-    //     });
-    // });
+    // let timeoutId; // Para evitar llamar a la API por cada letra rápido (Debounce)
+
+    inputNombre.addEventListener('input', function() {
+        const termino = this.value.trim();
+
+        // Ocultar si es muy corto
+        if (termino.length <= 3) {
+            listaResultados.style.display = 'none';
+            return;
+        }
+        
+        buscarProductos(termino);
+        
+    });
+
+    function buscarProductos(termino) {
+        // Llamada a tu ruta Flask
+        fetch(`/buscar_producto?q=${encodeURIComponent(termino)}`)
+            .then(response => response.json())
+            .then(data => {
+                mostrarResultados(data);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function mostrarResultados(productos) {
+        // Limpiar lista actual
+        listaResultados.innerHTML = '';
+
+        if (productos.length === 0) {
+            listaResultados.style.display = 'none';
+            return;
+        }
+
+        // Crear elementos de la lista
+        productos.forEach(producto => {
+            // Crear un botón por cada resultado (estilo Bootstrap List Group)
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.classList.add('list-group-item', 'list-group-item-action');
+            
+            // Contenido del item (Nombre y Precio)
+            item.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>${producto.nombre}</span>
+                    <span class="badge bg-primary">$${producto.precio}</span>
+                </div>
+            `;
+
+            // Evento al seleccionar un producto
+            item.addEventListener('click', function() {
+                seleccionarProducto(producto);
+            });
+
+            listaResultados.appendChild(item);
+        });
+
+        // Mostrar la lista
+        listaResultados.style.display = 'block';
+    }
+
+    function seleccionarProducto(producto) {
+        // Rellenar los inputs con la info seleccionada
+        inputNombre.value = producto.nombre;
+        inputPrecio.value = producto.precio; // Asegúrate de que coincida con tu JSON
+        inputCodigo.value = producto.id;     // O el campo que uses para código
+        
+        // Opcional: Enfocar el campo cantidad para agilizar la venta
+        document.getElementById('cantidadProducto').focus();
+
+        // Ocultar la lista
+        listaResultados.style.display = 'none';
+    }
+
+    // Cerrar la lista si se hace clic fuera de ella
+    document.addEventListener('click', function(e) {
+        if (!inputNombre.contains(e.target) && !listaResultados.contains(e.target)) {
+            listaResultados.style.display = 'none';
+        }
+    });
+
+    const inputCantidad = document.getElementById('cantidadProducto');
+    const btnAgregar = document.getElementById('btnAgregar');
+
+    // Función auxiliar para detectar Enter
+    function activarBotonConEnter(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Evita que se envíe el formulario si está dentro de uno
+            btnAgregar.click();     // Simula el clic en el botón Agregar
+        }
+    }
+
+    // Al dar Enter en la CANTIDAD, se agrega el producto
+    inputCantidad.addEventListener('keydown', activarBotonConEnter);
 });

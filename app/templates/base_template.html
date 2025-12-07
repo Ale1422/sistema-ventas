@@ -158,12 +158,12 @@
                             <i class="fas fa-users me-2"></i> Usuarios
                         </a>
                     </li>
-                    <li class="nav-item m-1">
+                    <!-- <li class="nav-item m-1">
                         <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'ruta_de_reportes' %}active bg-secondary bg-opacity-50{% endif %}" 
                         href="">
                             <i class="fas fa-chart-line me-2"></i> Reportes
                         </a>
-                    </li>
+                    </li> -->
                 {% elif current_user.get_rol() == "EMPLEADO" %}
                     <li class="nav-item m-1">
                         <a class="nav-link text-dark d-flex align-items-center {% if request.endpoint == 'empleado.venta' %}active bg-secondary bg-opacity-50{% endif %}" 

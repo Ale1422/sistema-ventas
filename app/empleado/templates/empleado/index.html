@@ -28,7 +28,12 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Nombre</label>
-                    <input type="text" id="nombreProducto" class="form-control" placeholder="Descripción" disabled>
+                    <div class="position-relative">
+                        <input type="text" id="nombreProducto" class="form-control" placeholder="Descripción" autocomplete="off">
+                        
+                        <div id="listaResultados" class="list-group position-absolute w-100 overflow-auto" style="max-height: 200px; z-index: 1000; display: none;">
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Cantidad(kg)</label>
@@ -41,9 +46,6 @@
                 <div class="col-md-2 d-flex">
                     <button id="btnAgregar" class="btn btn-success flex-grow-1">
                         <i class="fas fa-plus"></i> Agregar
-                    </button>
-                    <button id="btnBuscar" class="btn btn-primary ms-2" >
-                        <i class="fas fa-search"></i>
                     </button>
                 </div>
             </div>

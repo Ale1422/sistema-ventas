@@ -5,6 +5,7 @@ from flask_login import current_user
 from app import db
 import csv
 import io
+import pytz
 
 import logging
 
@@ -15,6 +16,8 @@ from .models import Venta, DetalleVenta
 from datetime import datetime
 
 from . import empleado_bp
+
+argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
 
 def registrar_venta(usuario_id, carrito, metodo_pago, descuento=float('0.00')):
     # Calcular el total de la venta sumando los subtotales de cada producto en el carrito
@@ -55,7 +58,7 @@ def venta():
 
     total = sum(float(item['subtotal']) for item in session.get('carrito', []))
 
-    return render_template('empleado/index.html', carrito=session['carrito'], Producto = Producto, total = total, fecha_actual = datetime.now().strftime('%d-%m-%Y'))
+    return render_template('empleado/index.html', carrito=session['carrito'], Producto = Producto, total = total, fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y'))
 
 @empleado_bp.route('/agregar-producto', methods=['POST'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
@@ -110,7 +113,7 @@ def buscar_producto():
         productos = Producto.query.filter(Producto.id.ilike(f'%{codigo}%')).all()
     else:
         productos = Producto.query.filter(Producto.Nombre_Producto.ilike(f'%{termino}%')).all()
-    productos_json = [{'id': p.id, 'nombre': p.Nombre_Producto, 'precio': p.Precio} for p in productos]
+    productos_json = [{'id': p.id + 1000, 'nombre': p.Nombre_Producto, 'precio': p.Precio} for p in productos]
     return jsonify(productos_json)
 
 @empleado_bp.route('/producto/<int:id_producto>', methods=['GET'])
