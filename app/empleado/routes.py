@@ -110,9 +110,9 @@ def buscar_producto():
     productos = None
     if(codigo):
         codigo = int(codigo) - 1000
-        productos = Producto.query.filter(Producto.id.ilike(f'%{codigo}%')).all()
+        productos = Producto.query.filter(Producto.id == codigo).filter(Producto.Estado == 'disponible').all()
     else:
-        productos = Producto.query.filter(Producto.Nombre_Producto.ilike(f'%{termino}%')).all()
+        productos = Producto.query.filter(Producto.Nombre_Producto.ilike(f'%{termino}%')).filter(Producto.Estado == 'disponible').all()
     productos_json = [{'id': p.id + 1000, 'nombre': p.Nombre_Producto, 'precio': p.Precio} for p in productos]
     return jsonify(productos_json)
 
@@ -164,7 +164,6 @@ def listado_ventas():
         query = query.filter(Venta.Método_Pago == forma_pago)
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    logging.error(pagination)
 
     return render_template('empleado/listado_ventas.html', pagination=pagination)
 
