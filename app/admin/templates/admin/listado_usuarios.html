@@ -1,0 +1,245 @@
+{% extends "base_template.html" %}
+
+{% block title %}Registro de usuarios{% endblock %}
+
+{% block content %}
+    
+    {% if error %}
+        <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+    {% endif %}
+    
+    <div class="d-flex justify-content-center align-items-center flex-column" style="min-height: 80vh;">
+        <div class="w-100 d-flex justify-content-between align-items-center mb-3">
+            <h3>Usuarios</h3>
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
+                Agregar Usuario
+            </button>
+        </div> 
+        <div class="w-100">
+            <table class="table table-striped table-hover table-borderless">
+                <thead>
+                    <tr>
+                        <td><strong>Nombre</strong></td>
+                        <td><strong>Apellido</strong></td>
+                        <td><strong>Email</strong></td>
+                        <td><strong>Rol</strong></td>
+                        <td><strong>Estado</strong></td>
+                        <td><strong>Acciones</strong></td>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.nombre }}</td>
+                    <td>{{ usuario.apellido }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.get_rol() }}</td>
+                    <td>
+                        <button type="button" 
+                                title="Cambiar estado"
+                                class="btn btn-sm {{ 'btn-success' if usuario.estado == 'activo' else 'btn-secondary' }}"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEstadoUsuario"
+                                data-url="{{ url_for('admin.cambiar_estado_usuario', id_usuario=usuario.id) }}">
+                            
+                            {% if usuario.estado == 'activo' %}
+                                Activo <i class="fas fa-check"></i>
+                            {% else %}
+                                Inactivo <i class="fas fa-times"></i>
+                            {% endif %}
+                        </button>
+                    </td>
+                    <td>
+                        <a title="Editar Usuario" href="{{ url_for('admin.editar_usuario', id_usuario=usuario.id) }}" class="btn btn-secondary btn-m"><i class="fas fa-edit"></i></a>                      
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- MODAL CREAR NUEVO USUARIO -->
+        <div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-labelledby="nuevoUsuarioModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="nuevoUsuarioModalLabel">Ingresar Nuevo Usuario</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if error %}
+                            <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+                        {% endif %}
+    
+                        <form action="" method="post" novalidate>
+                            {{ form.hidden_tag() }}
+                            <div class="mb-3">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control", size=32) }}
+                                {% for error in form.name.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.lastName.label(class="form-label") }}
+                                {{ form.lastName(class="form-control", size=32) }}
+                                {% for error in form.lastName.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.rol.label(class="form-label") }}
+                                {{ form.rol(class="form-control") }}
+                                {% for error in form.rol.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control") }}
+                                {% for error in form.email.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.password.label(class="form-label") }}
+                                {{ form.password(class="form-control") }}
+                                {% for error in form.password.errors %}
+                                    <span style="color: red;">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div>
+                                {{ form.submit(class="btn btn-primary w-100") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL CONFIRMACION DE CAMBIO DE ESTADO -->
+        <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">Confirmar acción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Realmente deseas cambiar el estado de este usuario?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarCambio">Cambiar</button>
+                </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MODAL CONFIRMACION DE CAMBIO DE ESTADO -->
+        <div class="modal fade" id="modalEstadoUsuario" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar cambio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Seguro que deseas cambiar el estado de este Usuario?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formCambiarEstadoUsuario" action="" method="post">
+                        <button type="submit" class="btn btn-primary">Cambiar</button>
+                    </form>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        var modalEstadoUsuario = document.getElementById('modalEstadoUsuario')
+        modalEstadoUsuario.addEventListener('show.bs.modal', function (event) {
+            // Botón que activó el modal
+            var button = event.relatedTarget
+            // Extraer la info de los atributos data-*
+            var urlAction = button.getAttribute('data-url')
+            
+            // Buscar el formulario dentro del modal y cambiar su acción
+            var form = modalEstadoUsuario.querySelector('#formCambiarEstadoUsuario')
+            form.action = urlAction
+        })
+
+        // Variables globales para almacenar el estado temporal
+        let usuarioIdSeleccionado = null;
+        let checkboxSeleccionado = null;
+        let modalConfirmacion = null; // Instancia del modal de Bootstrap
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar el modal de Bootstrap
+            modalConfirmacion = new bootstrap.Modal(document.getElementById('confirmModal'));
+            
+            // Asignar evento al botón "Sí, cambiar" del modal
+            document.getElementById('btnConfirmarCambio').addEventListener('click', ejecutarCambio);
+        });
+
+        function prepararCambio(event, element, userId) {
+            // 1. Prevenir que el switch cambie visualmente inmediatamente
+            event.preventDefault();
+
+            // 2. Guardar referencias para usarlas después de confirmar
+            usuarioIdSeleccionado = userId;
+            checkboxSeleccionado = element;
+
+            // 3. Mostrar el modal
+            modalConfirmacion.show();
+        }
+
+        function ejecutarCambio() {
+            if (!usuarioIdSeleccionado) return;
+
+            // URL a la ruta de Flask
+            const url = `/admin/cambiar_estado/${usuarioIdSeleccionado}`;
+            
+            // Obtener el token CSRF si usas Flask-WTF (generalmente está en un meta tag o input hidden)
+            // Si no tienes configurado CSRF global en AJAX, podrías necesitar ajustar esto.
+            // Opción A: Buscar token en el DOM (si existe <input name="csrf_token">)
+            const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Incluir token CSRF en el header si es necesario
+                    'X-CSRFToken': csrfToken 
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Éxito: Cambiamos visualmente el estado del checkbox MANUALMENTE
+                    checkboxSeleccionado.checked = !checkboxSeleccionado.checked;
+                    
+                    // Opcional: Mostrar un mensaje toast o alerta pequeña
+                    // alert('Estado actualizado a: ' + data.nuevo_estado);
+                } else {
+                    alert('Error al cambiar estado: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Hubo un error de conexión');
+            })
+            .finally(() => {
+                // Cerrar el modal pase lo que pase
+                modalConfirmacion.hide();
+                // Limpiar variables
+                usuarioIdSeleccionado = null;
+                checkboxSeleccionado = null;
+            });
+        }
+    </script>
+    
+{% endblock %}

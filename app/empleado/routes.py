@@ -52,139 +52,178 @@ def registrar_venta(usuario_id, carrito, metodo_pago, descuento=float('0.00')):
 @empleado_bp.route('/venta', methods=['GET'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def venta():
-    # Inicializamos el carrito en la sesión si no existe
-    if 'carrito' not in session:
-        session['carrito'] = []
+    try:
+        # Inicializamos el carrito en la sesión si no existe
+        if 'carrito' not in session:
+            session['carrito'] = []
 
-    total = sum(float(item['subtotal']) for item in session.get('carrito', []))
+        total = sum(float(item['subtotal']) for item in session.get('carrito', []))
 
-    return render_template('empleado/index.html', carrito=session['carrito'], Producto = Producto, total = total, fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y'))
+        return render_template('empleado/index.html', carrito=session['carrito'], Producto = Producto, total = total, fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y'))
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/agregar-producto', methods=['POST'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def agregar_producto():
-    producto_id = request.json.get('producto_id')
-    cantidad = int(request.json.get('cantidad', 1))
+    try:
+        producto_id = request.json.get('producto_id')
+        cantidad = float(request.json.get('cantidad', 1))
 
-    # Obtener el producto de la base de datos
-    producto = Producto.query.get(producto_id)
-    if not producto:
-        return jsonify({'error': 'Producto no encontrado'}), 404
+        # Obtener el producto de la base de datos
+        producto = Producto.query.get(producto_id)
+        if not producto:
+            return jsonify({'error': 'Producto no encontrado'}), 404
 
-    # Inicializar el carrito si no existe
-    carrito = session.get('carrito', [])
+        # Inicializar el carrito si no existe
+        carrito = session.get('carrito', [])
 
-    # Buscar si el producto ya está en el carrito
-    producto_en_carrito = next((item for item in carrito if item['id'] == producto_id), None)
+        # Buscar si el producto ya está en el carrito
+        producto_en_carrito = next((item for item in carrito if item['id'] == producto_id), None)
 
-    if producto_en_carrito:
-        # Si el producto ya está en el carrito, actualiza la cantidad y el subtotal
-        producto_en_carrito['cantidad'] += cantidad
-        producto_en_carrito['subtotal'] = producto_en_carrito['cantidad'] * producto.Precio
-    else:
-        # Si no está en el carrito, añadir el producto como un nuevo item
-        nuevo_item = {
-            'id': producto_id,
-            'codigo': producto_id + 1000,
-            'nombre': producto.Nombre_Producto,
-            'cantidad': cantidad,
-            'precio_unitario': producto.Precio,
-            'subtotal': producto.Precio * cantidad
-        }
-        carrito.append(nuevo_item)
+        if producto_en_carrito:
+            # Si el producto ya está en el carrito, actualiza la cantidad y el subtotal
+            producto_en_carrito['cantidad'] += cantidad
+            producto_en_carrito['subtotal'] = producto_en_carrito['cantidad'] * float(producto.Precio)
+        else:
+            # Si no está en el carrito, añadir el producto como un nuevo item
+            nuevo_item = {
+                'id': producto_id,
+                'codigo': producto_id + 1000,
+                'nombre': producto.Nombre_Producto,
+                'cantidad': cantidad,
+                'precio_unitario': producto.Precio,
+                'subtotal': float(producto.Precio) * cantidad
+            }
+            carrito.append(nuevo_item)
 
-    # Actualizar el carrito en la sesión
-    session['carrito'] = carrito
+        # Actualizar el carrito en la sesión
+        session['carrito'] = carrito
 
-    # Calcular el total
-    total = sum(float(item['subtotal']) for item in carrito)
+        # Calcular el total
+        total = sum(float(item['subtotal']) for item in carrito)
 
-    # Enviar la respuesta con el carrito actualizado y el nuevo total
-    return jsonify({'carrito': carrito, 'total': total})
+        # Enviar la respuesta con el carrito actualizado y el nuevo total
+        return jsonify({'carrito': carrito, 'total': total})
+
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/buscar_producto', methods=['GET'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def buscar_producto():
-    termino = request.args.get('q', '')
-    codigo = request.args.get('codigo', None)
-    productos = None
-    if(codigo):
-        codigo = int(codigo) - 1000
-        productos = Producto.query.filter(Producto.id == codigo).filter(Producto.Estado == 'disponible').all()
-    else:
-        productos = Producto.query.filter(Producto.Nombre_Producto.ilike(f'%{termino}%')).filter(Producto.Estado == 'disponible').all()
-    productos_json = [{'id': p.id + 1000, 'nombre': p.Nombre_Producto, 'precio': p.Precio} for p in productos]
-    return jsonify(productos_json)
+    try:
+        termino = request.args.get('q', '')
+        codigo = request.args.get('codigo', None)
+        productos = None
+        if(codigo):
+            codigo = int(codigo) - 1000
+            productos = Producto.query.filter(Producto.id == codigo).filter(Producto.Estado == 'disponible').all()
+        else:
+            productos = Producto.query.filter(Producto.Nombre_Producto.ilike(f'%{termino}%')).filter(Producto.Estado == 'disponible').all()
+        productos_json = [{'id': p.id + 1000, 'nombre': p.Nombre_Producto, 'precio': p.Precio} for p in productos]
+        return jsonify(productos_json)
+
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/producto/<int:id_producto>', methods=['GET'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def producto_id(id_producto):
+    try:
+        if(id_producto):
+            producto = Producto.get_by_id(id_producto)
 
-    if(id_producto):
-        producto = Producto.get_by_id(id_producto)
-
-    return jsonify({'id': producto.id, 'nombre': producto.Nombre_Producto, 'precio': producto.Precio})
+        return jsonify({'id': producto.id, 'nombre': producto.Nombre_Producto, 'precio': producto.Precio})
+        
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/detalle_venta/<int:venta_id>')
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def detalle_venta(venta_id):
-    venta = Venta.query.get_or_404(venta_id)
-    detalles = DetalleVenta.query.filter_by(ID_Venta=venta_id).all()
-    
-    # Formatear ID con ceros a la izquierda (6 dígitos)
-    venta_id_formateado = f"{venta.id:06d}"
-    
-    return render_template('empleado/detalle_venta.html', 
-                        venta=venta, 
-                        detalles=detalles,
-                        venta_id_formateado=venta_id_formateado)
+    try:
+        venta = Venta.query.get_or_404(venta_id)
+        detalles = DetalleVenta.query.filter_by(ID_Venta=venta_id).all()
+        
+        # Formatear ID con ceros a la izquierda (6 dígitos)
+        venta_id_formateado = f"{venta.id:06d}"
+        
+        return render_template('empleado/detalle_venta.html', 
+                            venta=venta, 
+                            detalles=detalles,
+                            venta_id_formateado=venta_id_formateado)
+
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/listado_ventas', methods = ['GET'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def listado_ventas():
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    # Obtener las fechas de los parámetros GET
-    fecha_inicio = request.args.get('fecha_inicio')
-    fecha_fin = request.args.get('fecha_fin')
-    forma_pago = request.args.get('forma_pago')
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
+        # Obtener las fechas de los parámetros GET
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        forma_pago = request.args.get('forma_pago')
 
-    # Construir la consulta base
-    query = Venta.query.order_by(Venta.Fecha_Venta.desc())
+        # Construir la consulta base
+        query = Venta.query.order_by(Venta.Fecha_Venta.desc())
 
-    # Aplicar filtro de fechas si están especificadas
-    if fecha_inicio:
-        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        query = query.filter(Venta.Fecha_Venta >= fecha_inicio)
-    if fecha_fin:
-        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
-        query = query.filter(Venta.Fecha_Venta <= fecha_fin)
-    
-    if forma_pago and forma_pago != '':
-        query = query.filter(Venta.Método_Pago == forma_pago)
+        # Aplicar filtro de fechas si están especificadas
+        if fecha_inicio:
+            fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            query = query.filter(Venta.Fecha_Venta >= fecha_inicio)
+        if fecha_fin:
+            fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            query = query.filter(Venta.Fecha_Venta <= fecha_fin)
+        
+        if forma_pago and forma_pago != '':
+            query = query.filter(Venta.Método_Pago == forma_pago)
 
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return render_template('empleado/listado_ventas.html', pagination=pagination)
+        return render_template('empleado/listado_ventas.html', pagination=pagination)
 
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/eliminar_producto', methods=['POST'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def eliminar_producto():
-    producto_id = int(request.json.get('producto_id'))
+    try:
+        producto_id = int(request.json.get('producto_id'))
 
-    # Recuperar el carrito de la sesión
-    carrito = session.get('carrito', [])
+        # Recuperar el carrito de la sesión
+        carrito = session.get('carrito', [])
 
-    # Filtrar el carrito para eliminar el producto con el ID dado
-    carrito = [item for item in carrito if item['id'] != producto_id]
-    session['carrito'] = carrito  # Actualizar el carrito en la sesión
+        # Filtrar el carrito para eliminar el producto con el ID dado
+        carrito = [item for item in carrito if item['id'] != producto_id]
+        session['carrito'] = carrito  # Actualizar el carrito en la sesión
 
-    # Calcular el nuevo total
-    total = sum(float(item['subtotal']) for item in carrito)
+        # Calcular el nuevo total
+        total = sum(float(item['subtotal']) for item in carrito)
 
-    # Enviar el carrito actualizado y el nuevo total
-    return jsonify({'carrito': carrito, 'total': total})
+        # Enviar el carrito actualizado y el nuevo total
+        return jsonify({'carrito': carrito, 'total': total})
+
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))
 
 @empleado_bp.route('/generar_venta', methods=['POST'])
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
@@ -197,7 +236,7 @@ def generar_venta():
     carrito = session.get('carrito', [])
 
     if not carrito:
-        flash('El carrito está vacío.', 'error')
+        flash('No hay productos para facturar.', 'error')
         return redirect(url_for('empleado.venta'))
 
     try:
@@ -220,43 +259,49 @@ def generar_venta():
 @empleado_bp.route('/descargar_ventas_csv')
 @roles_requeridos("EMPLEADO", mensaje='Solo para empleados', redireccion='/')
 def descargar_ventas_csv():
-    # 1. Obtener los filtros de la URL (igual que en tu vista de listado)
-    fecha_inicio = request.args.get('fecha_inicio')
-    fecha_fin = request.args.get('fecha_fin')
-    forma_pago = request.args.get('forma_pago')
+    try:
+        # 1. Obtener los filtros de la URL (igual que en tu vista de listado)
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
+        forma_pago = request.args.get('forma_pago')
 
-    # 2. Construir la consulta (Query) usando SQLAlchemy
-    # Ajusta 'Venta' al nombre real de tu clase Modelo
-    query = Venta.query
+        # 2. Construir la consulta (Query) usando SQLAlchemy
+        # Ajusta 'Venta' al nombre real de tu clase Modelo
+        query = Venta.query
 
-    if fecha_inicio and fecha_fin:
-        query = query.filter(Venta.Fecha_Venta.between(fecha_inicio, fecha_fin))
-    
-    if forma_pago and forma_pago != '':
-        query = query.filter(Venta.Método_Pago == forma_pago)
+        if fecha_inicio and fecha_fin:
+            query = query.filter(Venta.Fecha_Venta.between(fecha_inicio, fecha_fin))
+        
+        if forma_pago and forma_pago != '':
+            query = query.filter(Venta.Método_Pago == forma_pago)
 
-    ventas = query.all()
+        ventas = query.all()
 
-    si = io.StringIO()
-    si.write('\ufeff')
-    cw = csv.writer(si)
+        si = io.StringIO()
+        si.write('\ufeff')
+        cw = csv.writer(si)
 
-    # Escribir encabezados
-    cw.writerow(['ID', 'Fecha', 'Método de Pago', 'Total'])
+        # Escribir encabezados
+        cw.writerow(['ID', 'Fecha', 'Método de Pago', 'Total'])
 
-    # Escribir filas
-    for venta in ventas:
-        cw.writerow([
-            venta.id,
-            # Formateamos la fecha para que se vea bien en Excel
-            venta.Fecha_Venta.strftime('%d-%m-%Y') if venta.Fecha_Venta else '',
-            venta.Método_Pago,
-            venta.Total_Venta
-        ])
+        # Escribir filas
+        for venta in ventas:
+            cw.writerow([
+                venta.id,
+                # Formateamos la fecha para que se vea bien en Excel
+                venta.Fecha_Venta.strftime('%d-%m-%Y') if venta.Fecha_Venta else '',
+                venta.Método_Pago,
+                venta.Total_Venta
+            ])
 
-    # 4. Crear la respuesta de descarga, cabeceras de respuesta
-    output = make_response(si.getvalue())
-    output.headers["Content-Disposition"] = "attachment; filename=reporte_ventas.csv"
-    output.headers["Content-type"] = "text/csv"
-    
-    return output
+        # 4. Crear la respuesta de descarga, cabeceras de respuesta
+        output = make_response(si.getvalue())
+        output.headers["Content-Disposition"] = "attachment; filename=reporte_ventas.csv"
+        output.headers["Content-type"] = "text/csv"
+        
+        return output
+
+    except Exception as e:
+        print(e)
+        flash('Ups, algo sucedio!', 'error')
+        return redirect(url_for('empleado.venta'))

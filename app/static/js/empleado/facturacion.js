@@ -166,13 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Botón nueva factura
-    document.getElementById('btnNuevaFactura').addEventListener('click', function() {
-        if (productos.length > 0 && confirm('¿Está seguro de iniciar una nueva factura? Se perderán los datos actuales.')) {
-            productos = [];
-            actualizarTabla();
-            limpiarCampos();
-        }
-    });
+    // document.getElementById('btnNuevaFactura').addEventListener('click', function() {
+    //     if (productos.length > 0 && confirm('¿Está seguro de iniciar una nueva factura? Se perderán los datos actuales.')) {
+    //         productos = [];
+    //         actualizarTabla();
+    //         limpiarCampos();
+    //     }
+    // });
 
     // Botón finalizar venta
     document.getElementById('btnFinalizar').addEventListener('click', function() {

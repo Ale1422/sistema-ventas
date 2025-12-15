@@ -26,7 +26,7 @@ class DetalleVenta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ID_Venta = db.Column(db.Integer, db.ForeignKey('Ventas.id'))
     ID_Producto = db.Column(db.Integer, db.ForeignKey('Productos.id'))
-    Cantidad = db.Column(db.Integer, nullable=False)
+    Cantidad = db.Column(db.Numeric(10, 2), nullable=False)
     Precio_Unitario = db.Column(db.Numeric(10, 2), nullable=False)
     Subtotal = db.Column(db.Numeric(10, 2), nullable=False)
 

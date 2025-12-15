@@ -4,12 +4,58 @@
 
 {% block content %}
     <div class="d-flex justify-content-center align-items-center flex-column" style="min-height: 80vh;">
-        <!-- Botón para abrir el modal (antes de la tabla) -->
+        <!-- Botón para abrir el modal -->
         <div class="w-100 d-flex justify-content-between align-items-center mb-3">
             <h3>Productos</h3>
             <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#nuevoProductoModal">
                 Agregar Producto
             </button>
+        </div> 
+
+        <!-- Tabla de productos -->
+        <div class="w-100">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <td><strong>ID</strong></td>
+                        <td><strong>Nombre</strong></td>
+                        <td><strong>Descripción</strong></td>
+                        <td><strong>Precio</strong></td>
+                        <td><strong>Stock</strong></td>
+                        <td><strong>Estado</strong></td>
+                        <td><strong>Editar</strong></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in productos %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.Nombre_Producto }}</td>
+                        <td>{{ product.Descripción }}</td>
+                        <td>{{ product.Precio }}</td>
+                        <td>{{ product.Stock_Cantidad }}</td>
+                        <td>
+                            <button type="button"
+                                    title="Cambiar estado"
+                                    class="btn btn-sm {{ 'btn-success' if product.Estado == 'disponible' else 'btn-secondary' }}"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEstadoProducto"
+                                    data-url="{{ url_for('admin.cambiar_estado_producto', id=product.id) }}">
+                                
+                                {% if product.Estado == 'disponible' %}
+                                    Activo <i class="fas fa-check"></i>
+                                {% else %}
+                                    Inactivo <i class="fas fa-times"></i>
+                                {% endif %}
+                            </button>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin.get_contact', id=product.id) }}" title="Editar Producto" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
         <!-- Modal -->
@@ -70,92 +116,41 @@
             </div>
         </div>
 
-        <!-- Modal de confirmación para cambiar estado -->
-        <div class="modal fade" id="confirmStatusModal" tabindex="-1" aria-labelledby="confirmStatusModalLabel" aria-hidden="true">
+        <!-- MODAL CONFIRMACION DE CAMBIO DE ESTADO -->
+        <div class="modal fade" id="modalEstadoProducto" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="confirmStatusModalLabel">Cambiar estado del producto</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="statusModalBody">
-                        <!-- El contenido se llenará dinámicamente -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <form id="statusChangeForm" method="POST" action="">
-                            <button type="submit" class="btn btn-warning">Confirmar</button>
-                        </form>
-                    </div>
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar cambio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Seguro que deseas cambiar el estado de este producto?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="formCambiarEstadoProducto" action="" method="post">
+                        <button type="submit" class="btn btn-primary">Cambiar</button>
+                    </form>
+                </div>
                 </div>
             </div>
         </div>
-
-        <!-- Tabla de productos (se mantiene igual) -->
-        <div class="w-100">
-            <table class="table table-hover table-bordered bg-white">
-                <thead>
-                    <tr>
-                        <td><strong>ID</strong></td>
-                        <td><strong>Nombre</strong></td>
-                        <td><strong>Descripción</strong></td>
-                        <td><strong>Precio</strong></td>
-                        <td><strong>Stock</strong></td>
-                        <td><strong>Estado</strong></td>
-                        <td><strong>Operaciones</strong></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in productos %}
-                    <tr>
-                        <td>{{ product.id }}</td>
-                        <td>{{ product.Nombre_Producto }}</td>
-                        <td>{{ product.Descripción }}</td>
-                        <td>{{ product.Precio }}</td>
-                        <td>{{ product.Stock_Cantidad }}</td>
-                        <td>
-                            <span class="badge bg-{% if product.Estado == 'disponible' %}success{% else %}danger{% endif %}">
-                                {{ product.Estado }}
-                            </span>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('admin.get_contact', id=product.id) }}" class="btn btn-secondary btn-sm">Editar</a>
-                            <button type="button" class="btn btn-{% if product.Estado == 'disponible' %}danger{% else %}success{% endif %} btn-sm change-status-btn"
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#confirmStatusModal"
-                                    data-product-id="{{ product.id }}"
-                                    data-product-name="{{ product.Nombre_Producto }}"
-                                    data-current-status="{{ product.Estado }}">
-                                {% if product.Estado == 'disponible' %}Deshabilitar{% else %}habilitar{% endif %}
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        
     </div>
 
     <!-- JavaScript para manejar el modal de cambio de estado -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var statusModal = document.getElementById('confirmStatusModal');
-            var statusForm = document.getElementById('statusChangeForm');
+        var modalEstadoProducto = document.getElementById('modalEstadoProducto')
+        modalEstadoProducto.addEventListener('show.bs.modal', function (event) {
+            // Botón que activó el modal
+            var button = event.relatedTarget
+            // Extraer la info de los atributos data-*
+            var urlAction = button.getAttribute('data-url')
             
-            statusModal.addEventListener('show.bs.modal', function (event) {
-                var button = event.relatedTarget;
-                var productId = button.getAttribute('data-product-id');
-                var productName = button.getAttribute('data-product-name');
-                var currentStatus = button.getAttribute('data-current-status');
-                var newStatus = currentStatus === 'disponible' ? 'no disponible' : 'disponible';
-                
-                // Actualizar el contenido del modal
-                var modalBody = statusModal.querySelector('.modal-body');
-                modalBody.textContent = `¿Estás seguro que deseas cambiar el estado del producto "${productName}" de ${currentStatus} a ${newStatus}?`;
-                
-                // Actualizar el formulario
-                statusForm.action = `/cambiar_estado_producto/${productId}`;
-            });
-        });
+            // Buscar el formulario dentro del modal y cambiar su acción
+            var form = modalEstadoProducto.querySelector('#formCambiarEstadoProducto')
+            form.action = urlAction
+        })
     </script>
 {% endblock %}

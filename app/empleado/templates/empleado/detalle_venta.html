@@ -94,7 +94,7 @@
                 {% for item in detalles %}
                 <tr>
                     <td>{{ item.get_nombre_producto() }}</td>
-                    <td>{{ "%02d"|format(item.Cantidad) }}</td>
+                    <td>{{ "%0.2f"|format(item.Cantidad) }}</td>
                     <td>${{ "%0.2f"|format(item.Precio_Unitario) }}</td>
                     <td>${{ "%0.2f"|format(item.Subtotal) }}</td>
                 </tr>

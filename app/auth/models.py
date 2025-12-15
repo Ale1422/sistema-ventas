@@ -10,6 +10,7 @@ class Rol(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     Nombre_Rol = db.Column(db.String(50), nullable=False)
     Permisos = db.Column(db.Text)
+    stringId = db.column_property(""+id+"")
 
     users = db.relationship('User', back_populates='rol_relacion')
 
@@ -27,12 +28,12 @@ class User(UserMixin,db.Model):
 
     rol_relacion = db.relationship('Rol', back_populates='users')
 
-    def __init__(self, nombre, apellido, email):
+    def __init__(self, nombre, apellido, email, idRol):
         self.nombre = nombre
         self.apellido = apellido
         self.email = email
         self.fecha_creación = datetime.now()
-        self.rol = 2
+        self.rol = idRol
 
     def __repr__(self):
         return f'<User {self.email}>'
